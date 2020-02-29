@@ -1,0 +1,7 @@
+{
+ "name": "single-tier-profile",
+ "description": "Single tier topology network profile",
+ "parameters": {
+  "single_tier_topology": true
+ }
+}

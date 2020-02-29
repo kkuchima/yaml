@@ -1,0 +1,24 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mysql-backup-cron
+spec:
+  schedule: "0 */1 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - image: mysql:5.6
+            name: mysql-backup
+            volumeMounts:
+            - name: mysql-backup-persistent-storage
+              mountPath: /backup
+            command: ["/bin/sh"]
+            args: ["-c", "/usr/bin/mysqldump -u root -ppassword -h mariadb-svc.default.svc.cluster.local portaldb > /backup/mydb`date +%Y%m%d_%H-%M`.dump"]
+            # Service名は変更
+          restartPolicy: Never
+          volumes:
+          - name: mysql-backup-persistent-storage
+            persistentVolumeClaim:
+              claimName: maria-backup-pvc

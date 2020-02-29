@@ -1,0 +1,8 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: sc-vsphere
+provisioner: kubernetes.io/vsphere-volume
+parameters:
+  datastore: <DATASTORE-NAME>
+  diskformat: thin
