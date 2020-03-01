@@ -9,8 +9,8 @@ kubectl label ns hoge ns=hoge
 kubectl label ns foo ns=foo
 
 # テスト用busyboxデプロイ
-kubectl run busybox-hoge --image=pk-hbr-hj-801.hj.vm/vmware-test/busybox-curl --restart=Never --namespace=hoge --labels=app=busybox -- sleep 3600
-kubectl run busybox-foo --image=pk-hbr-hj-801.hj.vm/vmware-test/busybox-curl --restart=Never --namespace=foo --labels=app=busybox -- sleep 3600
+kubectl run busybox-hoge --image=yauritux/busybox-curl --restart=Never --namespace=hoge --labels=app=busybox -- sleep 3600
+kubectl run busybox-foo --image=yauritux/busybox-curl --restart=Never --namespace=foo --labels=app=busybox -- sleep 3600
 
 ＃疎通確認 
 kubectl exec -n hoge busybox-hoge -it -- curl nginx-svc.default.svc.cluster.local
