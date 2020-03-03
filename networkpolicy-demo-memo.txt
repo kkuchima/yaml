@@ -1,5 +1,8 @@
 # NetworkPolicy Demo memo
 
+# アクセス先Test Podのデプロイ
+kubectl run php-apache --image=k8s.gcr.io/hpa-example --requests=cpu=200m --expose --port=80 --labels=app=apache
+
 # テスト用Namespace作成
 kubectl create ns hoge
 kubectl create ns foo
@@ -12,6 +15,13 @@ kubectl label ns foo ns=foo
 kubectl run busybox-hoge --image=yauritux/busybox-curl --restart=Never --namespace=hoge --labels=app=busybox -- sleep 3600
 kubectl run busybox-foo --image=yauritux/busybox-curl --restart=Never --namespace=foo --labels=app=busybox -- sleep 3600
 
-＃疎通確認 
-kubectl exec -n hoge busybox-hoge -it -- curl nginx-svc.default.svc.cluster.local
-kubectl exec -n foo busybox-foo -it -- curl nginx-svc.default.svc.cluster.local
+＃疎通確認（どっちも通る想定）
+kubectl exec -n hoge busybox-hoge -it -- curl php-apache.default.svc.cluster.local
+kubectl exec -n foo busybox-foo -it -- curl php-apache.default.svc.cluster.local
+
+# NetworkPolicyの適用
+kubectl apply -f networkpolicy-namespace.yaml
+
+＃疎通確認（hogeだけ通る想定）
+kubectl exec -n hoge busybox-hoge -it -- curl php-apache.default.svc.cluster.local
+kubectl exec -n foo busybox-foo -it -- curl php-apache.default.svc.cluster.local

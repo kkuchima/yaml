@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-allow-namespace
+  name: networkpolicy-allow-label
 spec:
   podSelector:
     matchLabels:
@@ -9,10 +9,7 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  - from:
-    - namespaceSelector:
+  - from: #同一Namespaceから
+    - podSelector:
         matchLabels:
-          ns: hoge
-#      podSelector:
-#        matchLabels:
-#          app: busybox
+          app: busybox
