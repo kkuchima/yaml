@@ -16,7 +16,7 @@ resources:
 - name: container-image
   type: docker-image
   source:
-    repository: ((repository_name))/crown-demo/comp
+    repository: ((repository_name))/demo/comp
     username: ((registry_user))
     password: ((registry_password))
     ca_certs: ((repository_ca_certs))
