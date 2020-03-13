@@ -1,0 +1,35 @@
+pod_selector: app=django
+repository_name: Dokcerrepository Name
+registry_user: concourseci
+registry_password: PASSWORD_INFO
+repository_ca_certs:
+- domain: Dokcerrepository Name
+  cert: |
+    -----BEGIN CERTIFICATE-----
+    
+    -----END CERTIFICATE-----
+git_private_key: |
+  # PASTE YOUR KEY
+  -----BEGIN RSA PRIVATE KEY-----
+  
+  -----END RSA PRIVATE KEY-----
+kubeconfig-stg: |
+  # PASTE YOUR kubeconfig
+  apiVersion: v1
+  clusters:
+  - cluster:
+      certificate-authority-data: 
+      server: https://my-cluster01.XXX.YYY:8443
+    name: my-cluster01
+  contexts:
+  - context:
+      cluster: my-cluster01
+      user: 
+    name: my-cluster01
+  current-context: my-cluster01
+  kind: Config
+  preferences: {}
+  users:
+  - name: 
+    user:
+      token: 

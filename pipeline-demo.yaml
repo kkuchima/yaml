@@ -1,0 +1,137 @@
+resource_types:
+- name: kubernetes
+  type: docker-image
+  source:
+    repository: ((repository_name))/pipeline/zlabjp/kubernetes-resource
+    tag: "1.15"
+    username: ((registry_user))
+    password: ((registry_password))
+    ca_certs: ((repository_ca_certs))
+resources:
+- name: app
+  type: git
+  source:
+    uri: http://gitlab.XXX.YYY/dev01/comp.git
+#    private_key: ((git_private_key))
+- name: container-image
+  type: docker-image
+  source:
+    repository: ((repository_name))/crown-demo/comp
+    username: ((registry_user))
+    password: ((registry_password))
+    ca_certs: ((repository_ca_certs))
+- name: kubernetes
+  type: kubernetes
+  source:
+    kubeconfig: ((kubeconfig-stg))
+jobs:
+- name: unit-test
+  plan:
+  - get: app
+    trigger: true
+  - task: run-test
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((repository_name))/pipeline/alpine
+          username: ((registry_user))
+          password: ((registry_password))
+          ca_certs: ((repository_ca_certs))
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          echo "///WRITE YOUR TEST CODE EXAMPLE go test coverage ///"
+      inputs:
+      - name: app
+- name: build-image
+  plan:
+  - get: app
+    passed:
+    - unit-test
+    trigger: true
+  - put: container-image
+    params:
+      build: app
+      tag_as_latest: true
+      tag_file: app/.git/refs/heads/master
+      tag_prefix: stg-
+- name: kubernetes-deploy-stg
+  plan:
+  - get: app
+    passed:
+    - build-image
+    trigger: true
+  - task: rewrite-manifest
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((repository_name))/pipeline/alpine-git-sed
+          username: ((registry_user))
+          password: ((registry_password))
+          ca_certs: ((repository_ca_certs))
+      run:
+        path: sh
+        args:
+        - -c
+        - |
+          ls
+          cp -R app/* app-output/
+          cd app-output/manifests/
+          ls
+          sed -i '' -e "s/TAG/stg-`cat ../../app/.git/refs/heads/master`/" django-comp.yaml
+          cat django-comp.yaml
+      inputs:
+      - name: app
+      outputs:
+      - name: app-output
+  - put: kubernetes
+    params:
+      kubectl: apply -f app-output/manifests/
+      wait_until_ready_selector: ((pod_selector))
+    on_failure:
+      put: kubernetes
+      params:
+        kubectl: rollout undo deployments django
+        wait_until_ready: 120
+        wait_until_ready_selector: ((pod_selector))
+
+- name: stg-test
+  plan:
+  - get: app
+    trigger: true
+    passed:
+    - kubernetes-deploy-stg
+  - task: run-test
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ((repository_name))/pipeline/pyselenium
+          tag: "v1"
+          ca_certs: ((repository_ca_certs))
+          username: ((registry_user))
+          password: ((registry_password))
+      inputs:
+      - name: app
+      run:
+        path: sh
+        args:
+        args:
+        - -c
+        - |
+          pwd
+          ls
+          python3 app/test/py-e2e-case0001.py
+    on_failure:
+      put: kubernetes
+      params:
+        kubectl: rollout undo deployments django
+        wait_until_ready: 120
+        wait_until_ready_selector: ((pod_selector))
